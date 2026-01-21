@@ -38,6 +38,41 @@ func main() {
 		log.Fatalf("problem with declaring/binding: %v", err)
 	}
 
+	gameState := gamelogic.NewGameState(username)
+
+	for {
+		words := gamelogic.GetInput()
+		if len(words) == 0 {
+			continue
+		}
+
+		switch words[0] {
+		case "spawn":
+			err = gameState.CommandSpawn(words)
+			if err != nil {
+				fmt.Printf("Problem spawning units: %v", err)
+			}
+		case "move":
+			move, err := gameState.CommandMove(words)
+			if err != nil {
+				fmt.Printf("Problem moving units: %v", err)
+			} else {
+				fmt.Printf("Successful move: %v", move)
+			}
+		case "status":
+			gameState.CommandStatus()
+		case "help":
+			gamelogic.PrintClientHelp()
+		case "spam":
+			fmt.Println("Spamming not allowed yet!")
+		case "quit":
+			fmt.Println("disconnecting...")
+			return
+		default:
+			fmt.Println("unknown command")
+		}
+	}
+
 	// wait for ctrl+c
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
