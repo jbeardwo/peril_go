@@ -21,6 +21,11 @@ func main() {
 	}
 	defer connection.Close()
 
+	cha, err := connection.Channel()
+	if err != nil {
+		log.Fatalf("could not create channel: %v", err)
+	}
+
 	username, err := gamelogic.ClientWelcome()
 	if err != nil {
 		log.Fatalf("could not get username: %v", err)
@@ -36,6 +41,19 @@ func main() {
 		routing.PauseKey,
 		pubsub.Transient,
 		handlerPause(gameState),
+	)
+	if err != nil {
+		log.Fatalf("problem subscribing: %v", err)
+	}
+
+	moveQueueName := "army_moves." + username
+	err = pubsub.SubscribeJSON(
+		connection,
+		routing.ExchangePerilTopic,
+		moveQueueName,
+		"army_moves.*",
+		pubsub.Transient,
+		handlerMove(gameState),
 	)
 	if err != nil {
 		log.Fatalf("problem subscribing: %v", err)
@@ -59,16 +77,26 @@ func main() {
 				fmt.Printf("Problem moving units: %v", err)
 			} else {
 				fmt.Printf("Successful move: %v", move)
+				err = pubsub.PublishJSON(cha, routing.ExchangePerilTopic, moveQueueName, move)
+				if err != nil {
+					log.Fatalf("problem publishing Json: %v", err)
+				}
+				fmt.Println("Move published successfully")
 			}
+
 		case "status":
 			gameState.CommandStatus()
+
 		case "help":
 			gamelogic.PrintClientHelp()
+
 		case "spam":
 			fmt.Println("Spamming not allowed yet!")
+
 		case "quit":
 			fmt.Println("disconnecting...")
 			return
+
 		default:
 			fmt.Println("unknown command")
 		}
