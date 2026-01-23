@@ -28,6 +28,17 @@ func main() {
 
 	fmt.Println("Peril connected to RabbitMQ server")
 
+	_, _, err = pubsub.DeclareAndBind(
+		connection,
+		routing.ExchangePerilTopic,
+		routing.GameLogSlug,
+		"game_logs.*",
+		pubsub.Durable,
+	)
+	if err != nil {
+		log.Fatalf("problem with declaring/binding: %v", err)
+	}
+
 	gamelogic.PrintServerHelp()
 	for {
 		words := gamelogic.GetInput()
