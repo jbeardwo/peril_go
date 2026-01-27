@@ -53,7 +53,7 @@ func main() {
 		moveQueueName,
 		"army_moves.*",
 		pubsub.Transient,
-		handlerMove(gameState),
+		handlerMove(gameState, connection),
 	)
 	if err != nil {
 		log.Fatalf("problem subscribing: %v", err)
