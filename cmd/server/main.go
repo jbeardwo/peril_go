@@ -28,8 +28,6 @@ func main() {
 
 	fmt.Println("Peril connected to RabbitMQ server")
 
-	gs := gamelogic.NewGameState("server")
-
 	_, _, err = pubsub.DeclareAndBind(
 		connection,
 		routing.ExchangePerilTopic,
@@ -39,31 +37,6 @@ func main() {
 	)
 	if err != nil {
 		log.Fatalf("problem with declaring/binding: %v", err)
-	}
-
-	warKey := routing.WarRecognitionsPrefix + ".*"
-
-	_, _, err = pubsub.DeclareAndBind(
-		connection,
-		routing.ExchangePerilTopic,
-		"war",
-		warKey,
-		pubsub.Durable,
-	)
-	if err != nil {
-		log.Fatalf("problem with declaring/binding: %v", err)
-	}
-
-	err = pubsub.SubscribeJSON(
-		connection,
-		routing.ExchangePerilTopic,
-		"war",
-		warKey,
-		pubsub.Durable,
-		handlerWar(gs),
-	)
-	if err != nil {
-		log.Fatalf("problem subscribing: %v", err)
 	}
 
 	gamelogic.PrintServerHelp()

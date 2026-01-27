@@ -59,6 +59,19 @@ func main() {
 		log.Fatalf("problem subscribing: %v", err)
 	}
 
+	warKey := routing.WarRecognitionsPrefix + ".*"
+	err = pubsub.SubscribeJSON(
+		connection,
+		routing.ExchangePerilTopic,
+		"war", // shared durable queue
+		warKey,
+		pubsub.Durable, // or whatever durable queue config you’re using
+		handlerWar(gameState),
+	)
+	if err != nil {
+		log.Fatalf("problem subscribing to war: %v", err)
+	}
+
 	for {
 		words := gamelogic.GetInput()
 		if len(words) == 0 {

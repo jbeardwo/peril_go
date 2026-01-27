@@ -34,9 +34,9 @@ func handlerMove(gs *gamelogic.GameState, conn *amqp.Connection) func(gamelogic.
 			err = pubsub.PublishJSON(cha, routing.ExchangePerilTopic, key, val)
 			if err != nil {
 				log.Printf("problem publishing Json: %v", err)
+				return pubsub.NackRequeue
 			}
-
-			return pubsub.NackRequeue
+			return pubsub.Ack
 
 		case gamelogic.MoveOutcomeSamePlayer:
 			return pubsub.NackDiscard
