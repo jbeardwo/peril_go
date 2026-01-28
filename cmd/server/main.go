@@ -28,15 +28,23 @@ func main() {
 
 	fmt.Println("Peril connected to RabbitMQ server")
 
-	_, _, err = pubsub.DeclareAndBind(
-		connection,
+	err = pubsub.SubscribeGob(connection,
 		routing.ExchangePerilTopic,
 		routing.GameLogSlug,
-		"game_logs.*",
+		routing.GameLogSlug+".*",
 		pubsub.Durable,
+		func(gl routing.GameLog) pubsub.Acktype {
+			defer fmt.Print("> ")
+			err = gamelogic.WriteLog(gl)
+			if err != nil {
+				fmt.Printf("problem with declaring/binding: %v", err)
+				return pubsub.NackRequeue
+			}
+			return pubsub.Ack
+		},
 	)
 	if err != nil {
-		log.Fatalf("problem with declaring/binding: %v", err)
+		log.Fatalf("could not subscribe to logs: %v", err)
 	}
 
 	gamelogic.PrintServerHelp()
