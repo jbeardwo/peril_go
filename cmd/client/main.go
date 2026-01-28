@@ -66,7 +66,7 @@ func main() {
 		"war", // shared durable queue
 		warKey,
 		pubsub.Durable, // or whatever durable queue config you’re using
-		handlerWar(gameState),
+		handlerWar(gameState, cha),
 	)
 	if err != nil {
 		log.Fatalf("problem subscribing to war: %v", err)
